@@ -123,3 +123,6 @@ UpgradeLog*.XML
 /nuget/*.nupkg
 /Help
 /myresults.xml
+
+# Nvidia nano cuda files
+/docker/nvidia-lt4/nvidia-lt4-build/cuda/
