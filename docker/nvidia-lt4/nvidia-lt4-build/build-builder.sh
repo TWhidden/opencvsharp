@@ -1,5 +1,8 @@
 #/bin/bash
 
+# This script is intended to be built on the NVIDIA Nano. At the time
+# of this writing, the Nano has CUDA version 10.0 on it.
+
 #CUDA version on the Nano
 CUDAVERSION=10.0
 
@@ -12,7 +15,10 @@ done
 #Docker Tag to create
 NVIDIATAG=nano-build:cuda-${CUDAVERSION}
 
-if [ $(docker ps -a --format '{{.Names}}' | grep -E "^${NVIDIATAG}$" -c) -eq 0 ]; then
+# Inspect will return a fail if the tag does not exist, which will trigger the build
+if docker image inspect ${NVIDIATAG} ; then
+   echo "Tag ${NVIDIATAG} exists. Skipping build."
+else
 
     CUDASOURCE=/usr/local/cuda-${CUDAVERSION}/lib64/
 
@@ -21,7 +27,8 @@ if [ $(docker ps -a --format '{{.Names}}' | grep -E "^${NVIDIATAG}$" -c) -eq 0 ]
     else
         echo "Building with cuda path ${CUDASOURCE}"
         mkdir -p cuda/lib64 && cp -r ${CUDASOURCE} cuda/
+        
 
         docker build . -t ${NVIDIATAG}
-    fi
+    fi  
 fi

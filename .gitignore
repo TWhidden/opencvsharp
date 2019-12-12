@@ -126,3 +126,4 @@ UpgradeLog*.XML
 
 # Nvidia nano cuda files
 /docker/nvidia-lt4/nvidia-lt4-build/cuda/
+/docker/nvidia-lt4/nvidia-lt4-base/cuda/
