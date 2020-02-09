@@ -9,3 +9,17 @@
  This image will compile opencvsharp, with nvidia cuda enabled for use with the DNN libraries. 
  
  Please let me know if potential problems, docker optimziations, etc - Twitter:  @TWhidden
+ 
+ Mount Instructions for Runtime:
+ 
+  docker run  \
+  --restart=always \
+  --runtime nvidia \
+  --device=/dev/video0:/dev/video0 \
+  -v /usr/local/cuda:/usr/local/cuda \
+  -v /usr/lib/aarch64-linux-gnu/libcudnn_static_v7.a:/usr/lib/aarch64-linux-gnu/libcudnn_static_v7.a \
+  -v /usr/lib/aarch64-linux-gnu/libcudnn.so:/usr/lib/aarch64-linux-gnu/libcudnn.so \
+  -d \
+  YourImageName
+ 
+This mounts the hardware libs inside the docker so the docker doesnt have to have a copy of it, reducing the docker image by 1-3 GB in size.
