@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using OpenCvSharp.Util;
 
 namespace OpenCvSharp
@@ -13,12 +14,12 @@ namespace OpenCvSharp
         /// <summary>
         /// All blobs
         /// </summary>
-        public ReadOnlyCollection<Blob> Blobs { get; internal set; }
+        public IReadOnlyList<Blob> Blobs { get; }
 
         /// <summary>
         /// destination labeled value
         /// </summary>
-        public int[,] Labels { get; internal set; }
+        public ReadOnlyArray2D<int> Labels { get;  }
 
         /// <summary>
         /// The number of labels -1
@@ -31,10 +32,10 @@ namespace OpenCvSharp
         /// <param name="blobs"></param>
         /// <param name="labels"></param>
         /// <param name="labelCount"></param>
-        internal ConnectedComponents(IList<Blob> blobs, int[,] labels, int labelCount)
+        internal ConnectedComponents(IReadOnlyList<Blob> blobs, int[,] labels, int labelCount)
         {
-            Blobs = new ReadOnlyCollection<Blob>(blobs);
-            Labels = labels;
+            Blobs = blobs;
+            Labels = new ReadOnlyArray2D<int>(labels);
             LabelCount = labelCount;
         }
 
@@ -45,9 +46,9 @@ namespace OpenCvSharp
         /// <param name="dst">Destination image.</param>
         /// <param name="labelValue">Label value.</param>
         /// <returns>Filtered image.</returns>
-        public Mat FilterByLabel(Mat src, Mat dst, int labelValue)
+        public void FilterByLabel(Mat src, Mat dst, int labelValue)
         {
-            return FilterByLabels(src, dst, new[] { labelValue });
+            FilterByLabels(src, dst, new[] { labelValue });
         }
 
         /// <summary>
@@ -57,7 +58,7 @@ namespace OpenCvSharp
         /// <param name="dst">Destination image.</param>
         /// <param name="labelValues">Label values.</param>
         /// <returns>Filtered image.</returns>
-        public Mat FilterByLabels(Mat src, Mat dst, IEnumerable<int> labelValues)
+        public void FilterByLabels(Mat src, Mat dst, IEnumerable<int> labelValues)
         {
             if (src == null)
                 throw new ArgumentNullException(nameof(src));
@@ -65,7 +66,7 @@ namespace OpenCvSharp
                 throw new ArgumentNullException(nameof(dst));
             if (labelValues == null)
                 throw new ArgumentNullException(nameof(labelValues));
-            var labelArray = EnumerableEx.ToArray(labelValues);
+            var labelArray = labelValues.ToArray();
             if (labelArray.Length == 0)
                 throw new ArgumentException("empty labelValues");
 
@@ -76,18 +77,14 @@ namespace OpenCvSharp
             }
 
             // マスク用Matを用意し、Andで切り抜く
-            using (var mask = GetLabelMask(labelArray[0]))
+            using var mask = GetLabelMask(labelArray[0]);
+
+            for (var i = 1; i < labelArray.Length; i++)
             {
-                for (var i = 1; i < labelArray.Length; i++)
-                {
-                    using (var maskI = GetLabelMask(labelArray[i]))
-                    {
-                        Cv2.BitwiseOr(mask, maskI, mask);
-                    }
-                }
-                src.CopyTo(dst, mask);
-                return dst;
+                using var maskI = GetLabelMask(labelArray[i]);
+                Cv2.BitwiseOr(mask, maskI, mask);                
             }
+            src.CopyTo(dst, mask);
         }
 
         /// <summary>
@@ -97,9 +94,9 @@ namespace OpenCvSharp
         /// <param name="dst">Destination image.</param>
         /// <param name="blob">Blob value.</param>
         /// <returns>Filtered image.</returns>
-        public Mat FilterByBlob(Mat src, Mat dst, Blob blob)
+        public void FilterByBlob(Mat src, Mat dst, Blob blob)
         {
-            return FilterByLabels(src, dst, new[] { blob.Label });
+            FilterByLabels(src, dst, new[] { blob.Label });
         }
 
         /// <summary>
@@ -109,9 +106,9 @@ namespace OpenCvSharp
         /// <param name="dst">Destination image.</param>
         /// <param name="blobs">Blob values.</param>
         /// <returns>Filtered image.</returns>
-        public Mat FilterBlobs(Mat src, Mat dst, IEnumerable<Blob> blobs)
+        public void FilterByBlobs(Mat src, Mat dst, IEnumerable<Blob> blobs)
         {
-            return FilterByLabels(src, dst, EnumerableEx.Select(blobs, b => b.Label));
+            FilterByLabels(src, dst, blobs.Select(b => b.Label));
         }
 
         /// <summary>
@@ -184,7 +181,7 @@ namespace OpenCvSharp
         {
             var rows = Labels.GetLength(0);
             var cols = Labels.GetLength(1);
-            using (var labels = new Mat(rows, cols, MatType.CV_32SC1, Labels))
+            using (var labels = new Mat(rows, cols, MatType.CV_32SC1, Labels.GetBuffer()))
             using (var cmp = new Mat(rows, cols, MatType.CV_32SC1, Scalar.All(label)))
             {
                 var result = new Mat();

@@ -1,4 +1,4 @@
-version: '4.1.1-{build}'
+version: '4.2.0-{build}'
 
 #environment:
 #  APPVEYOR_SAVE_CACHE_ON_ERROR: false
@@ -96,10 +96,10 @@ after_build:
         }
     }
 
-    nuget pack nuget/OpenCvSharp4.nuspec -OutputDirectory artifacts
+    nuget pack nuget/OpenCvSharp4.nuspec -OutputDirectory artifacts -Symbols -SymbolPackageFormat snupkg
     nuget pack nuget/OpenCvSharp4.Windows.nuspec -OutputDirectory artifacts
-    nuget pack nuget/OpenCvSharp4.runtime.win.nuspec -OutputDirectory artifacts
-    nuget pack nuget/OpenCvSharp4.runtime.uwp.nuspec -OutputDirectory artifacts
+    nuget pack nuget/OpenCvSharp4.runtime.win.nuspec -OutputDirectory artifacts -Symbols -SymbolPackageFormat snupkg
+    nuget pack nuget/OpenCvSharp4.runtime.uwp.nuspec -OutputDirectory artifacts -Symbols -SymbolPackageFormat snupkg
 
 
 test_script:

@@ -12,21 +12,22 @@ namespace OpenCvSharp
         /// <summary>
         /// 
         /// </summary>
-        protected FrameSource? frameSource;
+        protected FrameSource? FrameSource{ get; private set; }
+
         /// <summary>
         /// 
         /// </summary>
-        protected bool firstCall;
+        protected bool FirstCall { get; private set; }
 
         #region Init & Disposal
 
         /// <summary>
-        /// 
+        /// Constructor
         /// </summary>
         protected SuperResolution()
         {
-            frameSource = null;
-            firstCall = true;
+            FrameSource = null;
+            FirstCall = true;
         }
 
         /// <summary>
@@ -35,7 +36,8 @@ namespace OpenCvSharp
         /// <returns></returns>
         public static SuperResolution CreateBTVL1()
         {
-            var ptr = NativeMethods.superres_createSuperResolution_BTVL1();
+            NativeMethods.HandleException(
+                NativeMethods.superres_createSuperResolution_BTVL1(out var ptr));
             return SuperResolutionImpl.FromPtr(ptr);
         }
 
@@ -45,7 +47,8 @@ namespace OpenCvSharp
         /// <returns></returns>
         public static SuperResolution CreateBTVL1_CUDA()
         {
-            var ptr = NativeMethods.superres_createSuperResolution_BTVL1_CUDA();
+            NativeMethods.HandleException(
+                NativeMethods.superres_createSuperResolution_BTVL1_CUDA(out var ptr));
             return SuperResolutionImpl.FromPtr(ptr);
         }
 
@@ -59,7 +62,7 @@ namespace OpenCvSharp
         /// <param name="fs">Input frame source</param>
         public virtual void SetInput(FrameSource fs)
         {
-            frameSource = fs;
+            FrameSource = fs;
         }
 
         /// <summary>
@@ -68,16 +71,16 @@ namespace OpenCvSharp
         /// <param name="frame">Output result</param>
         public virtual void NextFrame(OutputArray frame)
         {
-            if (frameSource == null)
+            if (FrameSource == null)
                 throw new NotSupportedException("frameSource == null");
 
-            if (firstCall)
+            if (FirstCall)
             {
-                InitImpl(frameSource);
-                firstCall = false;
+                InitImpl(FrameSource);
+                FirstCall = false;
             }
 
-            ProcessImpl(frameSource, frame);
+            ProcessImpl(FrameSource, frame);
         }
 
         /// <summary>
@@ -85,11 +88,11 @@ namespace OpenCvSharp
         /// </summary>
         public virtual void Reset()
         {
-            if (frameSource == null)
+            if (FrameSource == null)
                 throw new NotSupportedException("frameSource == null");
 
-            frameSource.Reset();
-            firstCall = true; 
+            FrameSource.Reset();
+            FirstCall = true; 
         }
 
         /// <summary>

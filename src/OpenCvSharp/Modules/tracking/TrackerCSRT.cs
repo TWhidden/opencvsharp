@@ -29,7 +29,8 @@ namespace OpenCvSharp.Tracking
         /// <returns></returns>
         public static TrackerCSRT Create()
         {
-            var p = NativeMethods.tracking_TrackerCSRT_create1();
+            NativeMethods.HandleException(
+                NativeMethods.tracking_TrackerCSRT_create1(out var p));
             return new TrackerCSRT(p);
         }
 
@@ -40,7 +41,8 @@ namespace OpenCvSharp.Tracking
         /// <returns></returns>
         public static TrackerCSRT Create(Params parameters)
         {
-            var p = NativeMethods.tracking_TrackerCSRT_create2(ref parameters);
+            NativeMethods.HandleException(
+                NativeMethods.tracking_TrackerCSRT_create2(ref parameters, out var p));
             return new TrackerCSRT(p);
         }
 
@@ -54,7 +56,8 @@ namespace OpenCvSharp.Tracking
                 throw new ArgumentNullException(nameof(mask));
             mask.ThrowIfDisposed();
 
-            NativeMethods.tracking_TrackerCSRT_setInitialMask(ptr, mask.CvPtr);
+            NativeMethods.HandleException(
+                NativeMethods.tracking_TrackerCSRT_setInitialMask(ptr, mask.CvPtr));
 
             GC.KeepAlive(mask);
         }
@@ -67,12 +70,16 @@ namespace OpenCvSharp.Tracking
 
             public override IntPtr Get()
             {
-                return NativeMethods.tracking_Ptr_TrackerCSRT_get(ptr);
+                NativeMethods.HandleException(
+                    NativeMethods.tracking_Ptr_TrackerCSRT_get(ptr, out var ret));
+                GC.KeepAlive(this);
+                return ret;
             }
 
             protected override void DisposeUnmanaged()
             {
-                NativeMethods.tracking_Ptr_TrackerCSRT_delete(ptr);
+                NativeMethods.HandleException(
+                    NativeMethods.tracking_Ptr_TrackerCSRT_delete(ptr));
                 base.DisposeUnmanaged();
             }
         }
@@ -83,6 +90,7 @@ namespace OpenCvSharp.Tracking
         [StructLayout(LayoutKind.Sequential)]
         public struct Params
         {
+#pragma warning disable CA1051
 #pragma warning disable 1591
             public int UseHog;
             public int UseColorNames;
@@ -122,6 +130,7 @@ namespace OpenCvSharp.Tracking
             /// we lost the target, if the psr is lower than this.
             /// </summary>
             public float PsrThreshold;
+#pragma warning restore CA1051
 #pragma warning restore 1591
 
             /// <summary>
@@ -137,7 +146,8 @@ namespace OpenCvSharp.Tracking
 
                 var p = new Params();
                 var windowFunction = new StringBuilder(32);
-                NativeMethods.tracking_TrackerCSRT_Params_read(ref p, windowFunction, fn.CvPtr);
+                NativeMethods.HandleException(
+                    NativeMethods.tracking_TrackerCSRT_Params_read(ref p, windowFunction, fn.CvPtr));
 
                 GC.KeepAlive(fn);
                 return p;
@@ -153,7 +163,8 @@ namespace OpenCvSharp.Tracking
                     throw new ArgumentNullException(nameof(fs));
                 fs.ThrowIfDisposed();
 
-                NativeMethods.tracking_TrackerCSRT_Params_write(ref this, fs.CvPtr);
+                NativeMethods.HandleException(
+                    NativeMethods.tracking_TrackerCSRT_Params_write(ref this, fs.CvPtr));
 
                 GC.KeepAlive(fs);
             }

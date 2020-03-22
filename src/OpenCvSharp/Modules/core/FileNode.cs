@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Text;
 
 // ReSharper disable UnusedMember.Global
 
@@ -21,7 +20,8 @@ namespace OpenCvSharp
         /// </summary>
         public FileNode()
         {
-            ptr = NativeMethods.core_FileNode_new1();
+            NativeMethods.HandleException(
+                NativeMethods.core_FileNode_new1(out ptr));
         }
 
         /// <summary>
@@ -38,7 +38,8 @@ namespace OpenCvSharp
         /// </summary>
         protected override void DisposeUnmanaged()
         {
-            NativeMethods.core_FileNode_delete(ptr);
+            NativeMethods.HandleException(
+                NativeMethods.core_FileNode_delete(ptr));
             base.DisposeUnmanaged();
         }
 
@@ -55,9 +56,22 @@ namespace OpenCvSharp
         {
             if (node == null)
                 throw new ArgumentNullException(nameof(node));
-            var res = NativeMethods.core_FileNode_toInt(node.CvPtr);
-            GC.KeepAlive(node);
-            return res;
+            return node.ToInt32();
+        }
+
+        /// <summary>
+        /// Returns the node content as an integer. If the node stores floating-point number, it is rounded.
+        /// </summary>
+        /// <returns></returns>
+        public int ToInt32()
+        {
+            ThrowIfDisposed();
+
+            NativeMethods.HandleException(
+                NativeMethods.core_FileNode_toInt(ptr, out var ret));
+
+            GC.KeepAlive(this);
+            return ret;
         }
 
         /// <summary>
@@ -69,9 +83,22 @@ namespace OpenCvSharp
         {
             if (node == null)
                 throw new ArgumentNullException(nameof(node));
-            var res = NativeMethods.core_FileNode_toFloat(node.CvPtr);
-            GC.KeepAlive(node);
-            return res;
+            return node.ToSingle();
+        }
+
+        /// <summary>
+        /// Returns the node content as System.Single
+        /// </summary>
+        /// <returns></returns>
+        public float ToSingle()
+        {
+            ThrowIfDisposed();
+
+            NativeMethods.HandleException(
+                NativeMethods.core_FileNode_toFloat(ptr, out var ret));
+
+            GC.KeepAlive(this);
+            return ret;
         }
 
         /// <summary>
@@ -83,9 +110,22 @@ namespace OpenCvSharp
         {
             if (node == null)
                 throw new ArgumentNullException(nameof(node));
-            var res = NativeMethods.core_FileNode_toDouble(node.CvPtr);
-            GC.KeepAlive(node);
-            return res;
+            return node.ToDouble();
+        }
+
+        /// <summary>
+        /// Returns the node content as double
+        /// </summary>
+        /// <returns></returns>
+        public double ToDouble()
+        {
+            ThrowIfDisposed();
+
+            NativeMethods.HandleException(
+                NativeMethods.core_FileNode_toDouble(ptr, out var ret));
+
+            GC.KeepAlive(this);
+            return ret;
         }
 
         /// <summary>
@@ -97,9 +137,22 @@ namespace OpenCvSharp
         {
             if (node == null)
                 throw new ArgumentNullException(nameof(node));
-            var buf = new StringBuilder(1 << 16);
-            NativeMethods.core_FileNode_toString(node.CvPtr, buf, buf.Capacity);
-            GC.KeepAlive(node);
+            return node.ToString();
+        }
+
+        /// <summary>
+        /// Returns the node content as text string
+        /// </summary>
+        /// <returns></returns>
+        public override string ToString()
+        { 
+            ThrowIfDisposed();
+
+            using var buf = new StdString();
+            NativeMethods.HandleException(
+                NativeMethods.core_FileNode_toString(ptr, buf.CvPtr));
+
+            GC.KeepAlive(this);
             return buf.ToString();
         }
         
@@ -112,11 +165,22 @@ namespace OpenCvSharp
         {
             if (node == null)
                 throw new ArgumentNullException(nameof(node));
-            node.ThrowIfDisposed();
+            return node.ToMat();
+        }
+
+        /// <summary>
+        /// Returns the node content as OpenCV Mat
+        /// </summary>
+        /// <returns></returns>
+        public Mat ToMat()
+        {
+            ThrowIfDisposed();
 
             var matrix = new Mat();
-            NativeMethods.core_FileNode_toMat(node.CvPtr, matrix.CvPtr);
-            GC.KeepAlive(node);
+            NativeMethods.HandleException(
+                NativeMethods.core_FileNode_toMat(ptr, matrix.CvPtr));
+
+            GC.KeepAlive(this);
             return matrix;
         }
 
@@ -134,7 +198,10 @@ namespace OpenCvSharp
                 ThrowIfDisposed();
                 if (nodeName == null)
                     throw new ArgumentNullException(nameof(nodeName));
-                var node = NativeMethods.core_FileNode_operatorThis_byString(ptr, nodeName);
+
+                NativeMethods.HandleException(
+                    NativeMethods.core_FileNode_operatorThis_byString(ptr, nodeName, out var node));
+
                 GC.KeepAlive(this);
                 if (node == IntPtr.Zero)
                     return null;
@@ -150,7 +217,10 @@ namespace OpenCvSharp
             get
             {
                 ThrowIfDisposed();
-                var node = NativeMethods.core_FileNode_operatorThis_byInt(ptr, i);
+
+                NativeMethods.HandleException( 
+                    NativeMethods.core_FileNode_operatorThis_byInt(ptr, i, out var node));
+
                 GC.KeepAlive(this);
                 if (node == IntPtr.Zero)
                     return null;
@@ -167,7 +237,8 @@ namespace OpenCvSharp
             get
             {
                 ThrowIfDisposed();
-                var ret = NativeMethods.core_FileNode_empty(ptr);
+                NativeMethods.HandleException(
+                    NativeMethods.core_FileNode_empty(ptr, out var ret));
                 GC.KeepAlive(this);
                 return ret != 0;
             }
@@ -182,7 +253,8 @@ namespace OpenCvSharp
             get
             {
                 ThrowIfDisposed();
-                var ret = NativeMethods.core_FileNode_isNone(ptr);
+                NativeMethods.HandleException( 
+                    NativeMethods.core_FileNode_isNone(ptr, out var ret));
                 GC.KeepAlive(this);
                 return ret != 0;
             }
@@ -197,7 +269,8 @@ namespace OpenCvSharp
             get
             {
                 ThrowIfDisposed();
-                var ret = NativeMethods.core_FileNode_isSeq(ptr);
+                NativeMethods.HandleException( 
+                    NativeMethods.core_FileNode_isSeq(ptr, out var ret));
                 GC.KeepAlive(this);
                 return ret != 0;
             }
@@ -212,7 +285,8 @@ namespace OpenCvSharp
             get
             {
                 ThrowIfDisposed();
-                var ret = NativeMethods.core_FileNode_isMap(ptr);
+                NativeMethods.HandleException( 
+                    NativeMethods.core_FileNode_isMap(ptr, out var ret));
                 GC.KeepAlive(this);
                 return ret != 0;
             }
@@ -227,7 +301,8 @@ namespace OpenCvSharp
             get
             {
                 ThrowIfDisposed();
-                var ret = NativeMethods.core_FileNode_isInt(ptr);
+                NativeMethods.HandleException(
+                    NativeMethods.core_FileNode_isInt(ptr, out var ret));
                 GC.KeepAlive(this);
                 return ret != 0;
             }
@@ -242,7 +317,8 @@ namespace OpenCvSharp
             get
             {
                 ThrowIfDisposed();
-                var ret = NativeMethods.core_FileNode_isReal(ptr);
+                NativeMethods.HandleException( 
+                    NativeMethods.core_FileNode_isReal(ptr, out var ret));
                 GC.KeepAlive(this);
                 return ret != 0;
             }
@@ -257,7 +333,8 @@ namespace OpenCvSharp
             get
             {
                 ThrowIfDisposed();
-                var ret = NativeMethods.core_FileNode_isString(ptr);
+                NativeMethods.HandleException( 
+                    NativeMethods.core_FileNode_isString(ptr, out var ret));
                 GC.KeepAlive(this);
                 return ret != 0;
             }
@@ -272,7 +349,8 @@ namespace OpenCvSharp
             get
             {
                 ThrowIfDisposed();
-                var ret = NativeMethods.core_FileNode_isNamed(ptr);
+                NativeMethods.HandleException(
+                    NativeMethods.core_FileNode_isNamed(ptr, out var ret));
                 GC.KeepAlive(this);
                 return ret != 0;
             }
@@ -287,8 +365,9 @@ namespace OpenCvSharp
             get
             {
                 ThrowIfDisposed();
-                var buf = new StringBuilder(1024);
-                NativeMethods.core_FileNode_name(ptr, buf, buf.Capacity);
+                using var buf = new StdString();
+                NativeMethods.HandleException(
+                    NativeMethods.core_FileNode_name(ptr, buf.CvPtr));
                 GC.KeepAlive(this);
                 return buf.ToString();
             }
@@ -303,9 +382,10 @@ namespace OpenCvSharp
             get
             {
                 ThrowIfDisposed();
-                var res = NativeMethods.core_FileNode_size(ptr).ToInt64();
+                NativeMethods.HandleException(
+                    NativeMethods.core_FileNode_size(ptr, out var ret));
                 GC.KeepAlive(this);
-                return res;
+                return ret.ToInt64();
             }
         }
 
@@ -318,9 +398,10 @@ namespace OpenCvSharp
             get
             {
                 ThrowIfDisposed();
-                var res = NativeMethods.core_FileNode_type(ptr);
+                NativeMethods.HandleException(
+                    NativeMethods.core_FileNode_type(ptr, out var ret));
                 GC.KeepAlive(this);
-                return (Types)res;
+                return (Types)ret;
             }
         }
 
@@ -335,11 +416,12 @@ namespace OpenCvSharp
         public FileNodeIterator Begin()
         {
             ThrowIfDisposed();
-            var p = NativeMethods.core_FileNode_begin(ptr);
+            NativeMethods.HandleException(
+                NativeMethods.core_FileNode_begin(ptr, out var p));
             GC.KeepAlive(this);
             return new FileNodeIterator(p);
         }
-        //! 
+
         /// <summary>
         /// returns iterator pointing to the element following the last node element
         /// </summary>
@@ -347,23 +429,22 @@ namespace OpenCvSharp
         public FileNodeIterator End()
         {
             ThrowIfDisposed();
-            var p = NativeMethods.core_FileNode_end(ptr);
+            NativeMethods.HandleException(
+                NativeMethods.core_FileNode_end(ptr, out var p));
             GC.KeepAlive(this);
             return new FileNodeIterator(p);
         }
         
         /// <summary>
-        /// 
+        /// Get FileNode iterator 
         /// </summary>
         /// <returns></returns>
         public IEnumerator<FileNode> GetEnumerator()
         {
-            using (FileNodeIterator it = Begin(), end = End())
+            using FileNodeIterator it = Begin(), end = End();
+            for (; !it.Equals(end); it.MoveNext())
             {
-                for (; !it.Equals(end); it.MoveNext())
-                {
-                    yield return it.Current;
-                }
+                yield return it.Current;
             }
         }
 
@@ -383,79 +464,68 @@ namespace OpenCvSharp
             ThrowIfDisposed();
             if (fmt == null)
                 throw new ArgumentNullException(nameof(fmt));
-            NativeMethods.core_FileNode_readRaw(ptr, fmt, vec, new IntPtr(len));
-            GC.KeepAlive(this);
-        }
-
-        /// <summary>
-        /// Writes a comment.
-        /// The function writes a comment into file storage.The comments are skipped when the storage is read.
-        /// </summary>
-        /// <param name="comment">The written comment, single-line or multi-line</param>
-        /// <param name="append">If true, the function tries to put the comment at the end of current line.
-        /// Else if the comment is multi-line, or if it does not fit at the end of the current line, the comment starts a new line.</param>
-        public void WriteComment(string comment, bool append = false)
-        {
-            ThrowIfDisposed();
-            if (comment == null)
-                throw new ArgumentNullException(nameof(comment));
-            NativeMethods.core_FileStorage_writeComment(ptr, comment, append ? 1 : 0);
+            NativeMethods.HandleException(
+                NativeMethods.core_FileNode_readRaw(ptr, fmt, vec, new IntPtr(len)));
             GC.KeepAlive(this);
         }
 
         #region Read
 
         /// <summary>
-        /// 
+        /// Reads the node element as Int32 (int)
         /// </summary>
         /// <param name="defaultValue"></param>
         /// <returns></returns>
         public int ReadInt(int defaultValue = default)
         {
-            NativeMethods.core_FileNode_read_int(ptr, out var value, defaultValue);
+            NativeMethods.HandleException(
+                NativeMethods.core_FileNode_read_int(ptr, out var value, defaultValue));
             GC.KeepAlive(this);
             return value;
         }
 
         /// <summary>
-        /// 
+        /// Reads the node element as Single (float)
         /// </summary>
         /// <param name="defaultValue"></param>
         /// <returns></returns>
         public float ReadFloat(float defaultValue = default)
         {
-            NativeMethods.core_FileNode_read_float(ptr, out var value, defaultValue);
+            NativeMethods.HandleException(
+                NativeMethods.core_FileNode_read_float(ptr, out var value, defaultValue));
             GC.KeepAlive(this);
             return value;
         }
 
         /// <summary>
-        /// 
+        /// Reads the node element as Double
         /// </summary>
         /// <param name="defaultValue"></param>
         /// <returns></returns>
         public double ReadDouble(double defaultValue = default)
         {
-            NativeMethods.core_FileNode_read_double(ptr, out var value, defaultValue);
+            NativeMethods.HandleException(
+                NativeMethods.core_FileNode_read_double(ptr, out var value, defaultValue));
             GC.KeepAlive(this);
             return value;
         }
 
         /// <summary>
-        /// 
+        /// Reads the node element as String
         /// </summary>
         /// <param name="defaultValue"></param>
         /// <returns></returns>
         public string ReadString(string? defaultValue = null)
         {
-            var value = new StringBuilder(65536);
-            NativeMethods.core_FileNode_read_String(ptr, value, value.Capacity, defaultValue);
+            using var value = new StdString();
+            NativeMethods.HandleException(
+                NativeMethods.core_FileNode_read_String(ptr, value.CvPtr, defaultValue));
             GC.KeepAlive(this);
             return value.ToString();
         }
 
         /// <summary>
-        /// 
+        /// Reads the node element as Mat
         /// </summary>
         /// <param name="defaultMat"></param>
         /// <returns></returns>
@@ -464,7 +534,8 @@ namespace OpenCvSharp
             var value = new Mat();
             try
             {
-                NativeMethods.core_FileNode_read_Mat(ptr, value.CvPtr, Cv2.ToPtr(defaultMat));
+                NativeMethods.HandleException(
+                    NativeMethods.core_FileNode_read_Mat(ptr, value.CvPtr, Cv2.ToPtr(defaultMat)));
                 GC.KeepAlive(this);
                 GC.KeepAlive(defaultMat);
             }
@@ -477,7 +548,7 @@ namespace OpenCvSharp
         }
 
         /// <summary>
-        /// 
+        /// Reads the node element as SparseMat
         /// </summary>
         /// <param name="defaultMat"></param>
         /// <returns></returns>
@@ -486,7 +557,8 @@ namespace OpenCvSharp
             var value = new SparseMat();
             try
             {
-                NativeMethods.core_FileNode_read_SparseMat(ptr, value.CvPtr, Cv2.ToPtr(defaultMat));
+                NativeMethods.HandleException(
+                    NativeMethods.core_FileNode_read_SparseMat(ptr, value.CvPtr, Cv2.ToPtr(defaultMat)));
                 GC.KeepAlive(this);
                 GC.KeepAlive(defaultMat);
             }
@@ -499,377 +571,399 @@ namespace OpenCvSharp
         }
 
         /// <summary>
-        /// 
+        /// Reads the node element as KeyPoint[]
         /// </summary>
         /// <returns></returns>
         public KeyPoint[] ReadKeyPoints()
         {
-            using (var valueVector = new VectorOfKeyPoint())
-            {
-                NativeMethods.core_FileNode_read_vectorOfKeyPoint(ptr, valueVector.CvPtr);
-                GC.KeepAlive(this);
-                return valueVector.ToArray();
-            }
+            using var valueVector = new VectorOfKeyPoint();
+            NativeMethods.HandleException(
+                NativeMethods.core_FileNode_read_vectorOfKeyPoint(ptr, valueVector.CvPtr));
+            GC.KeepAlive(this);
+            return valueVector.ToArray();
         }
 
         /// <summary>
-        /// 
+        /// Reads the node element as DMatch[]
         /// </summary>
         /// <returns></returns>
         public DMatch[] ReadDMatches()
         {
-            using (var valueVector = new VectorOfDMatch())
-            {
-                NativeMethods.core_FileNode_read_vectorOfDMatch(ptr, valueVector.CvPtr);
-                GC.KeepAlive(this);
-                return valueVector.ToArray();
-            }
+            using var valueVector = new VectorOfDMatch();
+            NativeMethods.HandleException(
+                NativeMethods.core_FileNode_read_vectorOfDMatch(ptr, valueVector.CvPtr));
+            GC.KeepAlive(this);
+            return valueVector.ToArray();
         }
 
         /// <summary>
-        /// 
+        /// Reads the node element as Range
         /// </summary>
         /// <returns></returns>
         public Range ReadRange()
         {
             ThrowIfDisposed();
-            var ret = NativeMethods.core_FileNode_read_Range(ptr);
+            NativeMethods.HandleException(
+                NativeMethods.core_FileNode_read_Range(ptr, out var ret));
             GC.KeepAlive(this);
             return ret;
         }
 
         /// <summary>
-        /// 
+        /// Reads the node element as KeyPoint
         /// </summary>
         /// <returns></returns>
         public KeyPoint ReadKeyPoint()
         {
             ThrowIfDisposed();
-            var ret = NativeMethods.core_FileNode_read_KeyPoint(ptr);
+            NativeMethods.HandleException( NativeMethods.core_FileNode_read_KeyPoint(ptr, out var ret));
             GC.KeepAlive(this);
             return ret;
         }
 
         /// <summary>
-        /// 
+        /// Reads the node element as DMatch
         /// </summary>
         /// <returns></returns>
         public DMatch ReadDMatch()
         {
             ThrowIfDisposed();
-            var ret = NativeMethods.core_FileNode_read_DMatch(ptr);
+            NativeMethods.HandleException(NativeMethods.core_FileNode_read_DMatch(ptr, out var ret));
             GC.KeepAlive(this);
             return ret;
         }
 
         /// <summary>
-        /// 
+        /// Reads the node element as Point
         /// </summary>
         /// <returns></returns>
         public Point ReadPoint()
         {
             ThrowIfDisposed();
-            var ret = NativeMethods.core_FileNode_read_Point2i(ptr);
+            NativeMethods.HandleException( NativeMethods.core_FileNode_read_Point2i(ptr, out var ret));
             GC.KeepAlive(this);
             return ret;
         }
 
         /// <summary>
-        /// 
+        /// Reads the node element as Point2f
         /// </summary>
         /// <returns></returns>
         public Point2f ReadPoint2f()
         {
             ThrowIfDisposed();
-            var ret = NativeMethods.core_FileNode_read_Point2f(ptr);
+            NativeMethods.HandleException( NativeMethods.core_FileNode_read_Point2f(ptr, out var ret));
             GC.KeepAlive(this);
             return ret;
         }
 
         /// <summary>
-        /// 
+        /// Reads the node element as Point2d
         /// </summary>
         /// <returns></returns>
         public Point2d ReadPoint2d()
         {
             ThrowIfDisposed();
-            var ret = NativeMethods.core_FileNode_read_Point2d(ptr);
+            NativeMethods.HandleException( NativeMethods.core_FileNode_read_Point2d(ptr, out var ret));
             GC.KeepAlive(this);
             return ret;
         }
 
         /// <summary>
-        /// 
+        /// Reads the node element as Point3i
         /// </summary>
         /// <returns></returns>
         public Point3i ReadPoint3i()
         {
             ThrowIfDisposed();
-            var ret = NativeMethods.core_FileNode_read_Point3i(ptr);
+            NativeMethods.HandleException( 
+                NativeMethods.core_FileNode_read_Point3i(ptr, out var ret));
             GC.KeepAlive(this);
             return ret;
         }
 
         /// <summary>
-        /// 
+        /// Reads the node element as Point3f
         /// </summary>
         /// <returns></returns>
         public Point3f ReadPoint3f()
         {
             ThrowIfDisposed();
-            var ret = NativeMethods.core_FileNode_read_Point3f(ptr);
+            NativeMethods.HandleException( 
+                NativeMethods.core_FileNode_read_Point3f(ptr, out var ret));
             GC.KeepAlive(this);
             return ret;
         }
 
         /// <summary>
-        /// 
+        /// Reads the node element as Point3d
         /// </summary>
         /// <returns></returns>
         public Point3d ReadPoint3d()
         {
             ThrowIfDisposed();
-            var ret = NativeMethods.core_FileNode_read_Point3d(ptr);
+            NativeMethods.HandleException(
+                NativeMethods.core_FileNode_read_Point3d(ptr, out var ret));
             GC.KeepAlive(this);
             return ret;
         }
 
         /// <summary>
-        /// 
+        /// Reads the node element as Size
         /// </summary>
         /// <returns></returns>
         public Size ReadSize()
         {
             ThrowIfDisposed();
-            var ret = NativeMethods.core_FileNode_read_Size2i(ptr);
+            NativeMethods.HandleException(
+                NativeMethods.core_FileNode_read_Size2i(ptr, out var ret));
             GC.KeepAlive(this);
             return ret;
         }
 
         /// <summary>
-        /// 
+        /// Reads the node element as Size2f
         /// </summary>
         /// <returns></returns>
         public Size2f ReadSize2f()
         {
             ThrowIfDisposed();
-            var ret = NativeMethods.core_FileNode_read_Size2f(ptr);
+            NativeMethods.HandleException(
+                NativeMethods.core_FileNode_read_Size2f(ptr, out var ret));
             GC.KeepAlive(this);
             return ret;
         }
 
         /// <summary>
-        /// 
+        /// Reads the node element as Size2d
         /// </summary>
         /// <returns></returns>
         public Size2d ReadSize2d()
         {
             ThrowIfDisposed();
-            var ret = NativeMethods.core_FileNode_read_Size2d(ptr);
+            NativeMethods.HandleException(
+                NativeMethods.core_FileNode_read_Size2d(ptr, out var ret));
             GC.KeepAlive(this);
             return ret;
         }
 
         /// <summary>
-        /// 
+        /// Reads the node element as Rect
         /// </summary>
         /// <returns></returns>
         public Rect ReadRect()
         {
             ThrowIfDisposed();
-            var ret = NativeMethods.core_FileNode_read_Rect2i(ptr);
+            NativeMethods.HandleException( 
+                NativeMethods.core_FileNode_read_Rect2i(ptr, out var ret));
             GC.KeepAlive(this);
             return ret;
         }
 
         /// <summary>
-        /// 
+        /// Reads the node element as Rect2f
         /// </summary>
         /// <returns></returns>
         public Rect2f ReadRect2f()
         {
             ThrowIfDisposed();
-            var ret = NativeMethods.core_FileNode_read_Rect2f(ptr);
+            NativeMethods.HandleException(
+                NativeMethods.core_FileNode_read_Rect2f(ptr, out var ret));
             GC.KeepAlive(this);
             return ret;
         }
 
         /// <summary>
-        /// 
+        /// Reads the node element as Rect2d
         /// </summary>
         /// <returns></returns>
         public Rect2d ReadRect2d()
         {
             ThrowIfDisposed();
-            var ret = NativeMethods.core_FileNode_read_Rect2d(ptr);
+            NativeMethods.HandleException(
+                NativeMethods.core_FileNode_read_Rect2d(ptr, out var ret));
             GC.KeepAlive(this);
             return ret;
         }
 
         /// <summary>
-        /// 
+        /// Reads the node element as Scalar
         /// </summary>
         /// <returns></returns>
         public Scalar ReadScalar()
         {
             ThrowIfDisposed();
-            var ret = NativeMethods.core_FileNode_read_Scalar(ptr);
+            NativeMethods.HandleException(
+                NativeMethods.core_FileNode_read_Scalar(ptr, out var ret));
             GC.KeepAlive(this);
             return ret;
         }
 
         /// <summary>
-        /// 
+        /// Reads the node element as Vector
         /// </summary>
         /// <returns></returns>
         public Vec2i ReadVec2i()
         {
             ThrowIfDisposed();
-            var ret = NativeMethods.core_FileNode_read_Vec2i(ptr);
+            NativeMethods.HandleException(
+                NativeMethods.core_FileNode_read_Vec2i(ptr, out var ret));
             GC.KeepAlive(this);
             return ret;
         }
 
         /// <summary>
-        /// 
+        /// Reads the node element as Vector
         /// </summary>
         /// <returns></returns>
         public Vec3i ReadVec3i()
         {
             ThrowIfDisposed();
-            var ret = NativeMethods.core_FileNode_read_Vec3i(ptr);
+            NativeMethods.HandleException( 
+                NativeMethods.core_FileNode_read_Vec3i(ptr, out var ret));
             GC.KeepAlive(this);
             return ret;
         }
 
         /// <summary>
-        /// 
+        /// Reads the node element as Vector
         /// </summary>
         /// <returns></returns>
         public Vec4i ReadVec4i()
         {
             ThrowIfDisposed();
-            var ret = NativeMethods.core_FileNode_read_Vec4i(ptr);
+            NativeMethods.HandleException( 
+                NativeMethods.core_FileNode_read_Vec4i(ptr, out var ret));
             GC.KeepAlive(this);
             return ret;
         }
 
         /// <summary>
-        /// 
+        /// Reads the node element as Vector
         /// </summary>
         /// <returns></returns>
         public Vec6i ReadVec6i()
         {
             ThrowIfDisposed();
-            var ret = NativeMethods.core_FileNode_read_Vec6i(ptr);
+            NativeMethods.HandleException( 
+                NativeMethods.core_FileNode_read_Vec6i(ptr, out var ret));
             GC.KeepAlive(this);
             return ret;
         }
 
         /// <summary>
-        /// 
+        /// Reads the node element as Vector
         /// </summary>
         /// <returns></returns>
         public Vec2d ReadVec2d()
         {
             ThrowIfDisposed();
-            var ret = NativeMethods.core_FileNode_read_Vec2d(ptr);
+            NativeMethods.HandleException( 
+                NativeMethods.core_FileNode_read_Vec2d(ptr, out var ret));
             GC.KeepAlive(this);
             return ret;
         }
 
         /// <summary>
-        /// 
+        /// Reads the node element as Vector
         /// </summary>
         /// <returns></returns>
         public Vec3d ReadVec3d()
         {
             ThrowIfDisposed();
-            var ret = NativeMethods.core_FileNode_read_Vec3d(ptr);
+            NativeMethods.HandleException( 
+                NativeMethods.core_FileNode_read_Vec3d(ptr, out var ret));
             GC.KeepAlive(this);
             return ret;
         }
 
         /// <summary>
-        /// 
+        /// Reads the node element as Vector
         /// </summary>
         /// <returns></returns>
         public Vec4d ReadVec4d()
         {
             ThrowIfDisposed();
-            var ret = NativeMethods.core_FileNode_read_Vec4d(ptr);
+            NativeMethods.HandleException( 
+                NativeMethods.core_FileNode_read_Vec4d(ptr, out var ret));
             GC.KeepAlive(this);
             return ret;
         }
 
         /// <summary>
-        /// 
+        /// Reads the node element as Vector
         /// </summary>
         /// <returns></returns>
         public Vec6d ReadVec6d()
         {
             ThrowIfDisposed();
-            var ret = NativeMethods.core_FileNode_read_Vec6d(ptr);
+            NativeMethods.HandleException( 
+                NativeMethods.core_FileNode_read_Vec6d(ptr, out var ret));
             GC.KeepAlive(this);
             return ret;
         }
 
         /// <summary>
-        /// 
+        /// Reads the node element as Vector
         /// </summary>
         /// <returns></returns>
         public Vec2f ReadVec2f()
         {
             ThrowIfDisposed();
-            var ret = NativeMethods.core_FileNode_read_Vec2f(ptr);
+            NativeMethods.HandleException( 
+                NativeMethods.core_FileNode_read_Vec2f(ptr, out var ret));
             GC.KeepAlive(this);
             return ret;
         }
 
         /// <summary>
-        /// 
+        /// Reads the node element as Vector
         /// </summary>
         /// <returns></returns>
         public Vec3f ReadVec3f()
         {
             ThrowIfDisposed();
-            var ret = NativeMethods.core_FileNode_read_Vec3f(ptr);
+            NativeMethods.HandleException( 
+                NativeMethods.core_FileNode_read_Vec3f(ptr, out var ret));
             GC.KeepAlive(this);
             return ret;
         }
 
         /// <summary>
-        /// 
+        /// Reads the node element as Vector
         /// </summary>
         /// <returns></returns>
         public Vec4f ReadVec4f()
         {
             ThrowIfDisposed();
-            var ret = NativeMethods.core_FileNode_read_Vec4f(ptr);
+            NativeMethods.HandleException( 
+                NativeMethods.core_FileNode_read_Vec4f(ptr, out var ret));
             GC.KeepAlive(this);
             return ret;
         }
 
         /// <summary>
-        /// 
+        /// Reads the node element as Vector
         /// </summary>
         /// <returns></returns>
         public Vec6f ReadVec6f()
         {
             ThrowIfDisposed();
-            var ret = NativeMethods.core_FileNode_read_Vec6f(ptr);
+            NativeMethods.HandleException( 
+                NativeMethods.core_FileNode_read_Vec6f(ptr, out var ret));
             GC.KeepAlive(this);
             return ret;
         }
         
         /// <summary>
-        /// 
+        /// Reads the node element as Vector
         /// </summary>
         /// <returns></returns>
         public Vec2b ReadVec2b()
         {
             ThrowIfDisposed();
-            var ret = NativeMethods.core_FileNode_read_Vec2b(ptr);
+            NativeMethods.HandleException( 
+                NativeMethods.core_FileNode_read_Vec2b(ptr, out var ret));
             GC.KeepAlive(this);
             return ret;
         }
@@ -881,128 +975,139 @@ namespace OpenCvSharp
         public Vec3b ReadVec3b()
         {
             ThrowIfDisposed();
-            var ret = NativeMethods.core_FileNode_read_Vec3b(ptr);
+            NativeMethods.HandleException( 
+                NativeMethods.core_FileNode_read_Vec3b(ptr, out var ret));
             GC.KeepAlive(this);
             return ret;
         }
 
         /// <summary>
-        /// 
+        /// Reads the node element as Vector
         /// </summary>
         /// <returns></returns>
         public Vec4b ReadVec4b()
         {
             ThrowIfDisposed();
-            var ret = NativeMethods.core_FileNode_read_Vec4b(ptr);
+            NativeMethods.HandleException(
+                NativeMethods.core_FileNode_read_Vec4b(ptr, out var ret));
             GC.KeepAlive(this);
             return ret;
         }
 
         /// <summary>
-        /// 
+        /// Reads the node element as Vector
         /// </summary>
         /// <returns></returns>
         public Vec6b ReadVec6b()
         {
             ThrowIfDisposed();
-            var ret = NativeMethods.core_FileNode_read_Vec6b(ptr);
+            NativeMethods.HandleException( 
+                NativeMethods.core_FileNode_read_Vec6b(ptr, out var ret));
             GC.KeepAlive(this);
             return ret;
         }
 
 
         /// <summary>
-        /// 
+        /// Reads the node element as Vector
         /// </summary>
         /// <returns></returns>
         public Vec2s ReadVec2s()
         {
             ThrowIfDisposed();
-            var ret = NativeMethods.core_FileNode_read_Vec2s(ptr);
+            NativeMethods.HandleException( 
+                NativeMethods.core_FileNode_read_Vec2s(ptr, out var ret));
             GC.KeepAlive(this);
             return ret;
         }
 
         /// <summary>
-        /// 
+        /// Reads the node element as Vector
         /// </summary>
         /// <returns></returns>
         public Vec3s ReadVec3s()
         {
             ThrowIfDisposed();
-            var ret = NativeMethods.core_FileNode_read_Vec3s(ptr);
+            NativeMethods.HandleException(
+                NativeMethods.core_FileNode_read_Vec3s(ptr, out var ret));
             GC.KeepAlive(this);
             return ret;
         }
 
         /// <summary>
-        /// 
+        /// Reads the node element as Vector
         /// </summary>
         /// <returns></returns>
         public Vec4s ReadVec4s()
         {
             ThrowIfDisposed();
-            var ret = NativeMethods.core_FileNode_read_Vec4s(ptr);
+            NativeMethods.HandleException( 
+                NativeMethods.core_FileNode_read_Vec4s(ptr, out var ret));
             GC.KeepAlive(this);
             return ret;
         }
 
         /// <summary>
-        /// 
+        /// Reads the node element as Vector
         /// </summary>
         /// <returns></returns>
         public Vec6s ReadVec6s()
         {
             ThrowIfDisposed();
-            var ret = NativeMethods.core_FileNode_read_Vec6s(ptr);
+            NativeMethods.HandleException(
+                NativeMethods.core_FileNode_read_Vec6s(ptr, out var ret));
             GC.KeepAlive(this);
             return ret;
         }
         
         /// <summary>
-        /// 
+        /// Reads the node element as Vector
         /// </summary>
         /// <returns></returns>
         public Vec2w ReadVec2w()
         {
             ThrowIfDisposed();
-            var ret = NativeMethods.core_FileNode_read_Vec2w(ptr);
+            NativeMethods.HandleException(
+                NativeMethods.core_FileNode_read_Vec2w(ptr, out var ret));
             GC.KeepAlive(this);
             return ret;
         }
 
         /// <summary>
-        /// 
+        /// Reads the node element as Vector
         /// </summary>
         /// <returns></returns>
         public Vec3w ReadVec3w()
         {
             ThrowIfDisposed();
-            var ret = NativeMethods.core_FileNode_read_Vec3w(ptr);
+            NativeMethods.HandleException( 
+                NativeMethods.core_FileNode_read_Vec3w(ptr, out var ret));
             GC.KeepAlive(this);
             return ret;
         }
 
         /// <summary>
-        /// 
+        /// Reads the node element as Vector
         /// </summary>
         /// <returns></returns>
         public Vec4w ReadVec4w()
         {
             ThrowIfDisposed();
-            var ret = NativeMethods.core_FileNode_read_Vec4w(ptr);
+            NativeMethods.HandleException( 
+                NativeMethods.core_FileNode_read_Vec4w(ptr, out var ret));
             GC.KeepAlive(this);
             return ret;
         }
 
         /// <summary>
-        /// 
+        /// Reads the node element as Vector
         /// </summary>
         /// <returns></returns>
         public Vec6w ReadVec6w()
         {
             ThrowIfDisposed();
-            var ret = NativeMethods.core_FileNode_read_Vec6w(ptr);
+            NativeMethods.HandleException(
+                NativeMethods.core_FileNode_read_Vec6w(ptr, out var ret));
             GC.KeepAlive(this);
             return ret;
         }

@@ -10,8 +10,6 @@ namespace OpenCvSharp
     {
         private Ptr? ptrObj;
 
-        //internal override IntPtr PtrObj => ptrObj.CvPtr;
-
         /// <summary>
         /// SimpleBlobDetector parameters
         /// </summary>
@@ -164,6 +162,7 @@ namespace OpenCvSharp
             }
         }
 
+#pragma warning disable CA1051
         [StructLayout(LayoutKind.Sequential)]
         public struct WParams
         {
@@ -187,13 +186,12 @@ namespace OpenCvSharp
 
             public int filterByConvexity;
             public float minConvexity, maxConvexity;
+#pragma warning restore CA1051
 #pragma warning restore 1591
         }
 
-        #region Init & Disposal
-
         /// <summary>
-        /// 
+        /// Constructor
         /// </summary>
         protected SimpleBlobDetector(IntPtr p)
         {
@@ -202,14 +200,15 @@ namespace OpenCvSharp
         }
 
         /// <summary>
-        /// 
+        /// Construct a SimpleBlobDetector instance
         /// </summary>
         /// <param name="parameters"></param>
         public static SimpleBlobDetector Create(Params? parameters = null)
         {
             if (parameters == null)
                 parameters = new Params();
-            var ptr = NativeMethods.features2d_SimpleBlobDetector_create(ref parameters.Data);
+            NativeMethods.HandleException(
+                NativeMethods.features2d_SimpleBlobDetector_create(ref parameters.Data, out var ptr));
             return new SimpleBlobDetector(ptr);
         }
 
@@ -223,12 +222,6 @@ namespace OpenCvSharp
             base.DisposeManaged();
         }
 
-        #endregion
-
-        #region Methods
-
-        #endregion
-
         internal class Ptr : OpenCvSharp.Ptr
         {
             public Ptr(IntPtr ptr) : base(ptr)
@@ -237,14 +230,16 @@ namespace OpenCvSharp
 
             public override IntPtr Get()
             {
-                var res = NativeMethods.features2d_Ptr_SimpleBlobDetector_get(ptr);
+                NativeMethods.HandleException(
+                    NativeMethods.features2d_Ptr_SimpleBlobDetector_get(ptr, out var ret));
                 GC.KeepAlive(this);
-                return res;
+                return ret;
             }
 
             protected override void DisposeUnmanaged()
             {
-                NativeMethods.features2d_Ptr_SimpleBlobDetector_delete(ptr);
+                NativeMethods.HandleException(
+                    NativeMethods.features2d_Ptr_SimpleBlobDetector_delete(ptr));
                 base.DisposeUnmanaged();
             }
         }

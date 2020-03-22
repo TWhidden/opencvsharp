@@ -112,7 +112,7 @@ namespace OpenCvSharp
             }
 
             if (additionalPaths == null)
-                additionalPaths = new string[0];
+                additionalPaths = Array.Empty<string>();
 
             try
             {
@@ -154,7 +154,7 @@ namespace OpenCvSharp
 
                     // Gets the pathname of the base directory that the assembly resolver uses to probe for assemblies.
                     // https://github.com/dotnet/corefx/issues/2221
-#if !NET20 && !NET40
+#if !NET40
                     baseDirectory = AppContext.BaseDirectory;
                     dllHandle = LoadLibraryInternal(dllName, baseDirectory, processArch);
                     if (dllHandle != IntPtr.Zero) return;
@@ -177,12 +177,11 @@ namespace OpenCvSharp
 #endif
 
                     var errorMessage = new StringBuilder();
-                    errorMessage.AppendFormat("Failed to find dll \"{0}\", for processor architecture {1}.", dllName,
-                                              processArch.Architecture);
+                    errorMessage.Append($"Failed to find dll \"{dllName}\", for processor architecture {processArch.Architecture}.");
                     if (processArch.HasWarnings)
                     {
                         // include process detection warnings
-                        errorMessage.AppendFormat("\r\nWarnings: \r\n{0}", processArch.WarningText());
+                        errorMessage.AppendLine().Append($"Warnings: ").AppendLine().Append("{processArch.WarningText()}");
                     }
                     throw new Exception(errorMessage.ToString());
                 }
@@ -269,7 +268,7 @@ namespace OpenCvSharp
                 // Attempt to load dll
                 try
                 {
-                    libraryHandle = Win32LoadLibrary(fileName);
+                    libraryHandle = Win32Api.LoadLibrary(fileName);
                     if (libraryHandle != IntPtr.Zero)
                     {
                         // library has been loaded
@@ -366,14 +365,5 @@ namespace OpenCvSharp
             }
         }
 
-#if DOTNET_FRAMEWORK
-        private const CharSet DefaultCharSet = CharSet.Auto;
-#else
-        private const CharSet DefaultCharSet = CharSet.Unicode;
-#endif
-
-        [DllImport("kernel32", EntryPoint = "LoadLibrary", CallingConvention = CallingConvention.Winapi,
-            SetLastError = true, CharSet = DefaultCharSet, BestFitMapping = false, ThrowOnUnmappableChar = true)]
-        private static extern IntPtr Win32LoadLibrary(string dllPath);
     }
 }

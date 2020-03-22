@@ -4,6 +4,18 @@
 //#define ENABLED_CONTRIB
 //#undef ENABLED_CONTRIB
 
+#ifndef CV_EXPORTS
+# if (defined _WIN32 || defined WINCE || defined __CYGWIN__)
+#   define CV_EXPORTS __declspec(dllexport)
+# elif defined __GNUC__ && __GNUC__ >= 4 && defined(__APPLE__)
+#   define CV_EXPORTS __attribute__ ((visibility ("default")))
+# endif
+#endif
+
+#ifndef CV_EXPORTS
+# define CV_EXPORTS
+#endif
+
 #ifdef _MSC_VER
 #define NOMINMAX
 #define _CRT_SECURE_NO_WARNINGS
@@ -15,9 +27,7 @@
 #define OPENCV_TRAITS_ENABLE_DEPRECATED
 
 #include <opencv2/opencv.hpp>
-#include <opencv2/calib3d/calib3d_c.h>
-#include <opencv2/core/core_c.h>
-#include <opencv2/highgui/highgui_c.h>
+
 // MP! Added: To correctly support imShow under WinRT.
 #ifdef _WINRT_DLL
 #include <opencv2/highgui/highgui_winrt.hpp>

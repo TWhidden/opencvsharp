@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using OpenCvSharp.Util;
 
 namespace OpenCvSharp
@@ -36,7 +37,7 @@ namespace OpenCvSharp
         {
             if (data == null)
                 throw new ArgumentNullException(nameof(data));
-            var array = EnumerableEx.ToArray(data);
+            var array = data.ToArray();
             ptr = NativeMethods.vector_Rect_new3(array, new IntPtr(array.Length));
         }
 
@@ -84,12 +85,12 @@ namespace OpenCvSharp
             var size = Size;
             if (size == 0)
             {
-                return new Rect[0];
+                return Array.Empty<Rect>();
             }
             var dst = new Rect[size];
             using (var dstPtr = new ArrayAddress1<Rect>(dst))
             {
-                MemoryHelper.CopyMemory(dstPtr, ElemPtr, Rect.SizeOf*dst.Length);
+                MemoryHelper.CopyMemory(dstPtr.Pointer, ElemPtr, MarshalHelper.SizeOf<Rect>() * dst.Length);
             }
             GC.KeepAlive(this); // ElemPtr is IntPtr to memory held by this object, so
                                 // make sure we are not disposed until finished with copy.

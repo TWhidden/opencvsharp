@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 
+#pragma warning disable CA1051
+
 namespace OpenCvSharp
 {
     /// <summary>
@@ -48,7 +50,7 @@ namespace OpenCvSharp
         /// <returns></returns>
         public byte this[int i]
         {
-            get
+            readonly get
             {
                 switch (i)
                 {
@@ -75,7 +77,7 @@ namespace OpenCvSharp
         /// </summary>
         /// <param name="other"></param>
         /// <returns></returns>
-        public bool Equals(Vec2b other)
+        public readonly bool Equals(Vec2b other)
         {
             return Item0 == other.Item0 && Item1 == other.Item1;
         }
@@ -85,7 +87,7 @@ namespace OpenCvSharp
         /// </summary>
         /// <param name="obj"></param>
         /// <returns></returns>
-        public override bool Equals(object? obj)
+        public override readonly bool Equals(object? obj)
         {
             if (obj is null) return false;
             return obj is Vec2b v && Equals(v);
@@ -117,12 +119,18 @@ namespace OpenCvSharp
         /// 
         /// </summary>
         /// <returns></returns>
-        public override int GetHashCode()
+        public override readonly int GetHashCode()
         {
             unchecked
             {
                 return (Item0.GetHashCode() * 397) ^ Item1.GetHashCode();
             }
+        }
+
+        /// <inheritdoc />
+        public override readonly string ToString()
+        {
+            return $"{nameof(Vec2b)} ({Item0}, {Item1})";
         }
     }
 }

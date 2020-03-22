@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.InteropServices;
 
 #pragma warning disable 1591
@@ -14,8 +15,8 @@ namespace OpenCvSharp.Util
     public class ArrayAddress1<T> : DisposableObject
         where T : unmanaged
     {
-        protected Array array;
-        protected GCHandle gch;
+        private readonly Array array;
+        private GCHandle gch;
 
         /// <summary>
         /// 
@@ -32,7 +33,7 @@ namespace OpenCvSharp.Util
         /// </summary>
         /// <param name="enumerable"></param>
         public ArrayAddress1(IEnumerable<T> enumerable)
-            : this(EnumerableEx.ToArray(enumerable))
+            : this(enumerable.ToArray())
         {
         }
 
@@ -42,7 +43,7 @@ namespace OpenCvSharp.Util
         /// <param name="array"></param>
         public ArrayAddress1(T[,] array)
         {
-            this.array = array ?? throw new ArgumentNullException();
+            this.array = array ?? throw new ArgumentNullException(nameof(array));
             gch = GCHandle.Alloc(array, GCHandleType.Pinned);
         }
 
@@ -62,16 +63,6 @@ namespace OpenCvSharp.Util
         /// 
         /// </summary>
         public IntPtr Pointer => gch.AddrOfPinnedObject();
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="self"></param>
-        /// <returns></returns>
-        public static implicit operator IntPtr(ArrayAddress1<T> self)
-        {
-            return self.Pointer;
-        }
 
         /// <summary>
         /// 

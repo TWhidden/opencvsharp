@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using OpenCvSharp.Util;
 using OpenCvSharp.ML;
 
@@ -46,7 +47,7 @@ namespace OpenCvSharp
         {
             if (data == null)
                 throw new ArgumentNullException(nameof(data));
-            var array = EnumerableEx.ToArray(data);
+            var array = data.ToArray();
             ptr = NativeMethods.vector_DTrees_Split_new3(array, new IntPtr(array.Length));
         }
 
@@ -94,12 +95,12 @@ namespace OpenCvSharp
             var size = Size;
             if (size == 0)
             {
-                return new DTrees.Split[0];
+                return Array.Empty<DTrees.Split>();
             }
             var dst = new DTrees.Split[size];
             using (var dstPtr = new ArrayAddress1<DTrees.Split>(dst))
             {
-                MemoryHelper.CopyMemory(dstPtr, ElemPtr, MarshalHelper.SizeOf<DTrees.Split>() * dst.Length);
+                MemoryHelper.CopyMemory(dstPtr.Pointer, ElemPtr, MarshalHelper.SizeOf<DTrees.Split>() * dst.Length);
             }
             GC.KeepAlive(this); // ElemPtr is IntPtr to memory held by this object, so
                                 // make sure we are not disposed until finished with copy.

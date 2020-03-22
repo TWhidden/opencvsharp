@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using OpenCvSharp.Util;
 
 namespace OpenCvSharp
@@ -45,7 +46,7 @@ namespace OpenCvSharp
         {
             if (data == null)
                 throw new ArgumentNullException(nameof(data));
-            var array = EnumerableEx.ToArray(data);
+            var array = data.ToArray();
             ptr = NativeMethods.vector_KeyPoint_new3(array, new IntPtr(array.Length));
         }
 
@@ -93,12 +94,12 @@ namespace OpenCvSharp
             var size = Size;
             if (size == 0)
             {
-                return new KeyPoint[0];
+                return Array.Empty<KeyPoint>();
             }
             var dst = new KeyPoint[size];
             using (var dstPtr = new ArrayAddress1<KeyPoint>(dst))
             {
-                MemoryHelper.CopyMemory(dstPtr, ElemPtr, MarshalHelper.SizeOf<KeyPoint>() * dst.Length);
+                MemoryHelper.CopyMemory(dstPtr.Pointer, ElemPtr, MarshalHelper.SizeOf<KeyPoint>() * dst.Length);
             }
             GC.KeepAlive(this); // ElemPtr is IntPtr to memory held by this object, so
                                 // make sure we are not disposed until finished with copy.

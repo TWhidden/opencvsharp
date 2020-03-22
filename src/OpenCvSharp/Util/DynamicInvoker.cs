@@ -93,7 +93,7 @@ namespace OpenCvSharp.Util
                 throw new PlatformNotSupportedException("This method is for only Windows");
             }
 
-#if NET20 || NET40
+#if NET40
             if (!typeof(T).IsSubclassOf(typeof(Delegate)))
 #else
             if (!typeof(T).GetTypeInfo().IsSubclassOf(typeof(Delegate)))
@@ -106,28 +106,28 @@ namespace OpenCvSharp.Util
 
             PtrLib = Win32Api.LoadLibrary(dllName);
             if (PtrLib == IntPtr.Zero)
-                throw new OpenCvSharpException("Failed to load \"{0}\".", dllName);
+                throw new OpenCvSharpException($"Failed to load \"{dllName}\".");
             PtrProc = Win32Api.GetProcAddress(PtrLib, functionName);
             if (PtrProc == IntPtr.Zero)
-                throw new OpenCvSharpException("Failed to get address of function \"{0}\".", functionName);
+                throw new OpenCvSharpException($"Failed to get address of function \"{functionName}\".");
 
             DllName = dllName;
             FunctionName = functionName;
             IsDisposed = false;
 
-#if NET20 || NET40
+#if NET40
             Call = (T)(object)Marshal.GetDelegateForFunctionPointer(PtrProc, typeof(T));
 #else
             Call = Marshal.GetDelegateForFunctionPointer<T>(PtrProc);
 #endif
         }
-
+        
         /// <summary>
         /// Releases unmanaged resources
         /// </summary>
         protected override void DisposeUnmanaged()
         {
-            Win32Api.FreeLibrary(PtrLib);
+            bool unused = Win32Api.FreeLibrary(PtrLib);
             base.DisposeUnmanaged();
         }
     }

@@ -26,7 +26,8 @@ namespace OpenCvSharp.Tracking
         /// <returns></returns>
         public static TrackerMIL Create()
         {
-            var p = NativeMethods.tracking_TrackerMIL_create1();
+            NativeMethods.HandleException(
+                NativeMethods.tracking_TrackerMIL_create1(out var p));
             return new TrackerMIL(p);
         }
 
@@ -39,7 +40,8 @@ namespace OpenCvSharp.Tracking
         {
             unsafe
             {
-                var p = NativeMethods.tracking_TrackerMIL_create2(&parameters);
+                NativeMethods.HandleException(
+                    NativeMethods.tracking_TrackerMIL_create2(&parameters, out var p));
                 return new TrackerMIL(p);
             }
         }
@@ -52,18 +54,22 @@ namespace OpenCvSharp.Tracking
 
             public override IntPtr Get()
             {
-                return NativeMethods.tracking_Ptr_TrackerMIL_get(ptr);
+                NativeMethods.HandleException(
+                    NativeMethods.tracking_Ptr_TrackerMIL_get(ptr, out var ret));
+                GC.KeepAlive(this);
+                return ret;
             }
 
             protected override void DisposeUnmanaged()
             {
-                NativeMethods.tracking_Ptr_TrackerMIL_delete(ptr);
+                NativeMethods.HandleException(
+                    NativeMethods.tracking_Ptr_TrackerMIL_delete(ptr));
                 base.DisposeUnmanaged();
             }
         }
 
-        /// <summary>
-        /// 
+#pragma warning disable CA1051
+        /// <summary> 
         /// </summary>
         [StructLayout(LayoutKind.Sequential)]
         public struct Params
@@ -103,5 +109,6 @@ namespace OpenCvSharp.Tracking
             /// </summary>
             public int FeatureSetNumFeatures; 
         }
+#pragma warning restore CA1051
     }
 }
