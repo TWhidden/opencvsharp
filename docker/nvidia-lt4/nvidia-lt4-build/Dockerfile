@@ -26,7 +26,7 @@ RUN apt-get update && apt-get install -y \
     software-properties-common
 
 # libjaspter1 is needed by OpenCV, but not in this nvidia build container
-RUN wget http://launchpadlibrarian.net/376191785/libjasper1_1.900.1-debian1-2.4ubuntu1.2_arm64.deb && dpkg -i libjasper1_1.900.1-debian1-2.4ubuntu1.2_arm64.deb
+RUN wget -q http://launchpadlibrarian.net/376191785/libjasper1_1.900.1-debian1-2.4ubuntu1.2_arm64.deb && dpkg -i libjasper1_1.900.1-debian1-2.4ubuntu1.2_arm64.deb
 
 # Install additional OpenCV depends
 RUN apt-get install -y \
@@ -59,7 +59,7 @@ RUN apt-get install -y \
 
 # Build .net 3.1 Base so we dont need to build it again later.
 RUN cd /tmp \
-    && wget https://download.visualstudio.microsoft.com/download/pr/5a4c8f96-1c73-401c-a6de-8e100403188a/0ce6ab39747e2508366d498f9c0a0669/dotnet-sdk-3.1.100-linux-arm64.tar.gz \
-    && mkdir -p /root/dotnet && tar zxf dotnet-sdk-3.1.100-linux-arm64.tar.gz -C /root/dotnet \
+    && wget -q https://download.visualstudio.microsoft.com/download/pr/781cb53b-046c-45fb-b18e-97ad65ff61a0/5c6ce7f4e031dad7cca0fdd5bcf4335b/dotnet-sdk-3.1.200-linux-arm64.tar.gz \
+    && mkdir -p /root/dotnet && tar zxf dotnet-sdk-3.1.200-linux-arm64.tar.gz -C /root/dotnet \
     && export DOTNET_ROOT=/root/dotnet \
     && export PATH=$PATH:/root/dotnet  

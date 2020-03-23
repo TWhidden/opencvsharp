@@ -16,8 +16,9 @@ done
 NVIDIATAG=nano-build:cuda-${CUDAVERSION}
 
 # Inspect will return a fail if the tag does not exist, which will trigger the build
-if docker image inspect ${NVIDIATAG} ; then
+if [ $(docker images --format "{{.Repository}}:{{.Tag}}" | grep -E "^${NVIDIATAG}$" -c) -eq 1 ]; then
    echo "Tag ${NVIDIATAG} exists. Skipping build."
+
 else
 
     CUDASOURCE=/usr/local/cuda-${CUDAVERSION}/lib64/
@@ -27,7 +28,6 @@ else
     else
         echo "Building with cuda path ${CUDASOURCE}"
         mkdir -p cuda/lib64 && cp -r ${CUDASOURCE} cuda/
-        
 
         docker build . -t ${NVIDIATAG}
     fi  

@@ -2,26 +2,24 @@ FROM nano-build:cuda-10.0 AS build-native-env
 
 WORKDIR /
 
-# ENV OPENCV_VERSION=4.1.2
+# Build Args
+ARG opencv_version
+ARG opencvsharp_version
+
+ENV OPENCV_VERSION=$opencv_version
+ENV OPENCVSHARP_VERSION=$opencvsharp_version
 
 # Setup OpenCV source
-# RUN wget https://github.com/opencv/opencv/archive/${OPENCV_VERSION}.zip && \
-#     unzip ${OPENCV_VERSION}.zip && \
-#     rm ${OPENCV_VERSION}.zip && \
-#     mv opencv-${OPENCV_VERSION} opencv
-
-# Some issues building out of Master and 4.1.2 doesnt have the cuda extensions, so using a commit that has been tested and works.
-RUN git clone https://github.com/opencv/opencv.git && cd opencv && git checkout b6a58818bb6b30a1f9d982b3f3f53228ea5a13c1 && cd /
-
+RUN wget -q https://github.com/opencv/opencv/archive/${OPENCV_VERSION}.zip && \
+    unzip -q ${OPENCV_VERSION}.zip && \
+    rm ${OPENCV_VERSION}.zip && \
+    mv opencv-${OPENCV_VERSION} opencv
 
 # Setup opencv-contrib Source
-# RUN wget https://github.com/opencv/opencv_contrib/archive/${OPENCV_VERSION}.zip && \
-#     unzip ${OPENCV_VERSION}.zip && \
-#     rm ${OPENCV_VERSION}.zip && \
-#     mv opencv_contrib-${OPENCV_VERSION} opencv_contrib
-
-# Matching head used in the compile
-RUN git clone https://github.com/opencv/opencv_contrib.git && cd opencv_contrib && git checkout 64961f3794d4da9619da486f14024aa84ebb4ae2 && cd /
+RUN wget -q https://github.com/opencv/opencv_contrib/archive/${OPENCV_VERSION}.zip && \
+    unzip -q ${OPENCV_VERSION}.zip && \
+    rm ${OPENCV_VERSION}.zip && \
+    mv opencv_contrib-${OPENCV_VERSION} opencv_contrib
 
 # Needed for the CUDNN compile
 COPY cuda/lib/aarch64-linux-gnu/* /usr/lib/aarch64-linux-gnu/
@@ -61,8 +59,13 @@ RUN cd opencv && mkdir build && cd build && \
 WORKDIR /
 
 # Download OpenCvSharp
-RUN git clone https://github.com/shimat/opencvsharp.git
-RUN cd opencvsharp && git fetch --all --tags --prune
+#RUN git clone https://github.com/shimat/opencvsharp.git
+#RUN cd opencvsharp && git fetch --all --tags --prune
+
+RUN wget -q https://github.com/shimat/opencvsharp/archive/${OPENCVSHARP_VERSION}.zip && \
+    unzip -q ${OPENCVSHARP_VERSION}.zip && \
+    rm ${OPENCVSHARP_VERSION}.zip && \
+    mv opencvsharp-${OPENCVSHARP_VERSION} opencvsharp
 
 # Install the Extern lib.
 WORKDIR /opencvsharp/src
@@ -71,7 +74,7 @@ RUN cd /opencvsharp/make && cmake -D CMAKE_INSTALL_PREFIX=/opencvsharp/make /ope
 RUN ls /opencvsharp/make
 
 # Copyed from the original docker
-FROM mcr.microsoft.com/dotnet/core/sdk:3.0-bionic-arm64v8 AS build-dotnet-env
+FROM mcr.microsoft.com/dotnet/core/sdk:3.1-bionic-arm64v8 AS build-dotnet-env
 COPY --from=build-native-env /opencvsharp/make/OpenCvSharpExtern/libOpenCvSharpExtern.so ./
 RUN git clone https://github.com/shimat/opencvsharp.git
 RUN pwd
@@ -99,8 +102,7 @@ RUN cp /opencvsharp/src/OpenCvSharp.Extensions/bin/Release/netstandard2.0/* .
 RUN pwd
 RUN ls
 
-
-#FROM mcr.microsoft.com/dotnet/core/aspnet:3.1-bionic-arm64v8
+# Base nvidia image for accel needs
 FROM nvcr.io/nvidia/l4t-base:r32.2.1
 
 # Install on the base image, the .net runtime, dependancies, etc. 
@@ -109,11 +111,11 @@ RUN cd /tmp \
   && apt-get install -y apt-transport-https \
   && echo "Installing all apps" \
   && apt-get install -y --allow-unauthenticated \
-   		libgdiplus \
+        libgdiplus \
         libc6-dev \
         libgtk2.0-0 \
-  && wget https://download.visualstudio.microsoft.com/download/pr/e7c893c5-726a-40aa-8a13-7ae6f1e3ee4e/8ba7467756a3fb1778f02f1ca98ca1ee/aspnetcore-runtime-3.1.0-linux-arm64.tar.gz \
-  && mkdir -p /root/dotnet && tar zxf aspnetcore-runtime-3.1.0-linux-arm64.tar.gz -C /root/dotnet \
+  && wget -q https://download.visualstudio.microsoft.com/download/pr/ec985ae1-e15c-4858-b586-de5f78956573/f585f8ffc303bbca6a711ecd61417a40/aspnetcore-runtime-3.1.2-linux-arm64.tar.gz \
+  && mkdir -p /root/dotnet && tar zxf aspnetcore-runtime-3.1.2-linux-arm64.tar.gz -C /root/dotnet \
   && export DOTNET_ROOT=/root/dotnet \
   && export PATH=$PATH:/root/dotnet \
   && rm -rf /var/lib/apt/lists/* 

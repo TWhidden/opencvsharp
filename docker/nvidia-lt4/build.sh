@@ -4,9 +4,12 @@
 # of this writing, the Nano has CUDA version 10.0 on it.
 
 CUDAVERSION=10.0
+OPENCV_VERSION=4.2.0
+OPENCVSHARP_VERSION=4.2.0.20200208
 
 #Docker Tag to create
-NVIDIATAG=nano:cuda-${CUDAVERSION}
+DOCKER_TAG=traviswhidden/opencvsharp-nvidia-nano-runtime:cuda-${CUDAVERSION}-opencv-$OPENCV_VERSION
+DOCKER_LATEST_TAG=traviswhidden/opencvsharp-nvidia-nano-runtime:latest
 
 echo "Building cuda container if it doesnt exist"
 cd nvidia-lt4-build
@@ -26,6 +29,13 @@ mkdir -p cuda/lib/aarch64-linux-gnu \
   && cp /usr/lib/aarch64-linux-gnu/libcudnn.so.7.5.0 cuda/lib/aarch64-linux-gnu/ \
   && cp /usr/lib/aarch64-linux-gnu/libcudnn_static_v7.a cuda/lib/aarch64-linux-gnu/ 
   
-
 # Build and tag
-docker build . -t ${NVIDIATAG}
+docker build . \
+  --build-arg opencv_version="${OPENCV_VERSION}" \
+  --build-arg opencvsharp_version="${OPENCVSHARP_VERSION}" \
+  -t ${DOCKER_TAG}
+
+# Give the latest tag
+docker tag ${DOCKER_TAG} ${DOCKER_LATEST_TAG}
+
+
