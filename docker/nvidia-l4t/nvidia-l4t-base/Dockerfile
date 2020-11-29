@@ -1,13 +1,19 @@
-FROM nano-build:cuda-10.0 AS build-native-env
+ARG CUDA_V=10.2
+ARG L4T_V=32.4.4
+FROM nano-build:cuda-${CUDA_V}-base-${L4T_V} AS build-native-env
 
 WORKDIR /
 
 # Build Args
 ARG opencv_version
 ARG opencvsharp_version
+ARG L4T_V=32.4.4
+ARG CUDNN_V=10.2
+ARG CUDNN_STATIC_V=8
 
 ENV OPENCV_VERSION=$opencv_version
 ENV OPENCVSHARP_VERSION=$opencvsharp_version
+
 
 # Setup OpenCV source
 RUN wget -q https://github.com/opencv/opencv/archive/${OPENCV_VERSION}.zip && \
@@ -24,13 +30,18 @@ RUN wget -q https://github.com/opencv/opencv_contrib/archive/${OPENCV_VERSION}.z
 # Needed for the CUDNN compile
 COPY cuda/lib/aarch64-linux-gnu/* /usr/lib/aarch64-linux-gnu/
 COPY cuda/include/aarch64-linux-gnu/* /usr/include/aarch64-linux-gnu/
-RUN ln -L /usr/include/aarch64-linux-gnu/cudnn_v7.h /usr/include/cudnn.h    
-RUN ln -L /usr/lib/aarch64-linux-gnu/libcudnn.so.7.5.0  /usr/lib/aarch64-linux-gnu/libcudnn.so
-RUN ln -L /usr/lib/aarch64-linux-gnu/libcudnn_static_v7.a  /usr/lib/aarch64-linux-gnu/libcudnn_static.a
+COPY cuda/include/* /usr/include/
+#RUN ln -L /usr/include/aarch64-linux-gnu/cudnn_v${CUDNN_STATIC_V}.h /usr/include/cudnn.h    
+#RUN ln -L /usr/include/aarch64-linux-gnu/cudnn_version_v${CUDNN_STATIC_V}.h /usr/include/cudnn_version.h
+RUN ln -L /usr/lib/aarch64-linux-gnu/libcudnn.so.${CUDNN_V}  /usr/lib/aarch64-linux-gnu/libcudnn.so
+RUN ln -L /usr/lib/aarch64-linux-gnu/libcudnn_static_v${CUDNN_STATIC_V}.a  /usr/lib/aarch64-linux-gnu/libcudnn_static.a
+RUN ln -L /usr/lib/aarch64-linux-gnu/libcublas.so.10.2.2.89  /usr/lib/aarch64-linux-gnu/libcublas.so
 RUN echo LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/usr/local/cuda/lib64:/usr/lib/aarch64-linux-gnu/
 RUN echo PATH=$PATH:/usr/local/cuda/bin
 
 # Build OpenCV
+# CUDA_ARCH_BIN = https://en.wikipedia.org/wiki/CUDA#GPUs_supported
+
 RUN cd opencv && mkdir build && cd build && \
     cmake \
     -D OPENCV_EXTRA_MODULES_PATH=../../opencv_contrib/modules \
@@ -62,10 +73,12 @@ WORKDIR /
 #RUN git clone https://github.com/shimat/opencvsharp.git
 #RUN cd opencvsharp && git fetch --all --tags --prune
 
-RUN wget -q https://github.com/shimat/opencvsharp/archive/${OPENCVSHARP_VERSION}.zip && \
-    unzip -q ${OPENCVSHARP_VERSION}.zip && \
-    rm ${OPENCVSHARP_VERSION}.zip && \
-    mv opencvsharp-${OPENCVSHARP_VERSION} opencvsharp
+ARG OPENCV_SHARP_ZIP=4.5.0.20201013
+
+RUN wget -q https://github.com/shimat/opencvsharp/archive/${OPENCV_SHARP_ZIP}.zip && \
+    unzip -q ${OPENCV_SHARP_ZIP}.zip && \
+    rm ${OPENCV_SHARP_ZIP}.zip && \
+    mv opencvsharp-${OPENCV_SHARP_ZIP} opencvsharp
 
 # Install the Extern lib.
 WORKDIR /opencvsharp/src
@@ -73,12 +86,27 @@ RUN mkdir /opencvsharp/make
 RUN cd /opencvsharp/make && cmake -D CMAKE_INSTALL_PREFIX=/opencvsharp/make /opencvsharp/src && make -j4 && make install
 RUN ls /opencvsharp/make
 
-# Copyed from the original docker
+# Copied from the original docker
 FROM mcr.microsoft.com/dotnet/core/sdk:3.1-bionic-arm64v8 AS build-dotnet-env
 COPY --from=build-native-env /opencvsharp/make/OpenCvSharpExtern/libOpenCvSharpExtern.so ./
-RUN git clone https://github.com/shimat/opencvsharp.git
-RUN pwd
-RUN ls
+
+# Install parts needed for dev
+RUN apt-get update && apt-get install -y \
+    unzip 
+
+# Version of OpenCV Sharp to match the version being called
+ARG OPENCV_SHARP_ZIP=4.5.0.20201013
+
+# Setup OpenCV source
+RUN wget -q https://github.com/shimat/opencvsharp/archive/${OPENCV_SHARP_ZIP}.zip && \
+    unzip -q ${OPENCV_SHARP_ZIP}.zip && \
+    rm ${OPENCV_SHARP_ZIP}.zip && \
+    mv opencvsharp-${OPENCV_SHARP_ZIP} opencvsharp
+
+# RUN git clone --depth 1 https://github.com/shimat/opencvsharp.git
+# #RUN git clone https://github.com/TWhidden/opencvsharp.git
+# RUN pwd
+# RUN ls
 
 # Install Build the C# part of OpenCvSharp
 WORKDIR /opencvsharp/src/OpenCvSharp
@@ -102,20 +130,23 @@ RUN cp /opencvsharp/src/OpenCvSharp.Extensions/bin/Release/netstandard2.0/* .
 RUN pwd
 RUN ls
 
+ARG L4T_V=32.4.4
+
 # Base nvidia image for accel needs
-FROM nvcr.io/nvidia/l4t-base:r32.2.1
+FROM nvcr.io/nvidia/l4t-base:r${L4T_V}
+
+ENV DEBIAN_FRONTEND noninteractive
 
 # Install on the base image, the .net runtime, dependancies, etc. 
 RUN cd /tmp \
   && apt-get update \
-  && apt-get install -y apt-transport-https \
-  && echo "Installing all apps" \
+  && apt-get install -y apt-transport-https ca-certificates \
   && apt-get install -y --allow-unauthenticated \
         libgdiplus \
         libc6-dev \
         libgtk2.0-0 \
-  && wget -q https://download.visualstudio.microsoft.com/download/pr/ec985ae1-e15c-4858-b586-de5f78956573/f585f8ffc303bbca6a711ecd61417a40/aspnetcore-runtime-3.1.2-linux-arm64.tar.gz \
-  && mkdir -p /root/dotnet && tar zxf aspnetcore-runtime-3.1.2-linux-arm64.tar.gz -C /root/dotnet \
+  && wget -q https://download.visualstudio.microsoft.com/download/pr/ac555882-afa3-4f5b-842b-c4cec2ae0e90/84cdd6d47a9f79b6722f0e0a9b258888/aspnetcore-runtime-5.0.0-linux-arm64.tar.gz \
+  && mkdir -p /root/dotnet && tar zxf aspnetcore-runtime-5.0.0-linux-arm64.tar.gz -C /root/dotnet \
   && export DOTNET_ROOT=/root/dotnet \
   && export PATH=$PATH:/root/dotnet \
   && rm -rf /var/lib/apt/lists/* 

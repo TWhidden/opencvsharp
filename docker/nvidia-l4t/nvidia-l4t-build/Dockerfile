@@ -1,8 +1,11 @@
-FROM nvcr.io/nvidia/l4t-base:r32.2.1 AS build-native-env
+ARG L4T_V=32.4.4
+FROM nvcr.io/nvidia/l4t-base:r${L4T_V} AS build-native-env
 
+
+ARG CUDA_V=10.2
 # Copy the cuda libs to the local cuda dir
 # These files are staged from the build script when building on the Nvidia Jetson Nano
-COPY cuda/lib64 /usr/local/cuda-10.0/
+COPY cuda/lib64 /usr/local/cuda-${CUDA_V}/
 
 # Install parts needed for dev
 RUN apt-get update && apt-get install -y \
